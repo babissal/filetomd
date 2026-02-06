@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fileconverter"
+version = "0.1.0"
+description = "CLI tool to convert PDF, HTML, DOCX, XLSX, MSG, CSV, PPTX, and image files to Markdown"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Babis Saltsidis"}
+]
+keywords = ["markdown", "converter", "pdf", "docx", "xlsx", "html", "msg", "email", "outlook", "csv", "pptx", "powerpoint", "image", "ocr", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+dependencies = [
+    "click>=8.1.0",
+    "pymupdf4llm>=0.0.17",
+    "markdownify>=0.13.1",
+    "mammoth>=1.8.0",
+    "openpyxl>=3.1.0",
+    "beautifulsoup4>=4.12.0",
+    "extract-msg>=0.48.0",
+    "python-pptx>=0.6.21",
+    "Pillow>=10.0.0",
+    "pytesseract>=0.3.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.scripts]
+fileconverter = "fileconverter.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
