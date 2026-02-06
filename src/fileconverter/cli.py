@@ -55,6 +55,17 @@ def main():
     default=4,
     help="Number of parallel workers for batch conversion.",
 )
+@click.option(
+    "-m", "--merge",
+    is_flag=True,
+    help="Merge all converted files into a single Markdown file.",
+)
+@click.option(
+    "--merge-filename",
+    type=str,
+    default="merged.md",
+    help="Filename for merged output. Default: merged.md.",
+)
 def convert(
     paths: tuple[str, ...],
     output: Path | None,
@@ -63,6 +74,8 @@ def convert(
     extract_images: bool,
     dry_run: bool,
     workers: int,
+    merge: bool,
+    merge_filename: str,
 ):
     """Convert files to Markdown.
 
@@ -75,6 +88,8 @@ def convert(
         fileconverter convert ./documents/ -r -o ./markdown/
         fileconverter convert ./input/ --format pdf -r
         fileconverter convert ./documents/ -r --dry-run
+        fileconverter convert doc1.pdf doc2.docx --merge -o ./output/
+        fileconverter convert ./docs/ -r --merge --merge-filename context.md
     """
     # Convert path strings to Path objects
     path_list = [Path(p) for p in paths]
@@ -90,12 +105,21 @@ def convert(
     format_list = list(formats) if formats else None
 
     # Run conversion
-    results = converter.convert_batch(
-        path_list,
-        recursive=recursive,
-        formats=format_list,
-        dry_run=dry_run,
-    )
+    if merge:
+        results = converter.convert_and_merge(
+            path_list,
+            recursive=recursive,
+            formats=format_list,
+            dry_run=dry_run,
+            merge_filename=merge_filename,
+        )
+    else:
+        results = converter.convert_batch(
+            path_list,
+            recursive=recursive,
+            formats=format_list,
+            dry_run=dry_run,
+        )
 
     if not results:
         click.echo("No files found to convert.")
@@ -105,7 +129,10 @@ def convert(
     success_count = 0
     error_count = 0
 
-    if dry_run:
+    if dry_run and merge:
+        merged_path = results[0].output_path if results else merge_filename
+        click.echo(f"Dry run - files that would be merged into {merged_path}:\n")
+    elif dry_run:
         click.echo("Dry run - files that would be converted:\n")
 
     for result in results:
@@ -113,7 +140,8 @@ def convert(
             success_count += 1
             if dry_run:
                 click.echo(f"  {result.source_path}")
-                click.echo(f"    -> {result.output_path}")
+                if not merge:
+                    click.echo(f"    -> {result.output_path}")
             else:
                 click.echo(f"[OK] {result.source_path.name} -> {result.output_path}")
                 if result.images_extracted:
@@ -124,8 +152,13 @@ def convert(
 
     # Summary
     click.echo()
-    if dry_run:
+    if dry_run and merge:
+        click.echo(f"Would merge {success_count} file(s) into {merged_path}.")
+    elif dry_run:
         click.echo(f"Would convert {success_count} file(s).")
+    elif merge:
+        merged_path = results[0].output_path if results and results[0].success else merge_filename
+        click.echo(f"Merged {success_count} file(s) into {merged_path}, {error_count} error(s).")
     else:
         click.echo(f"Converted {success_count} file(s), {error_count} error(s).")
 

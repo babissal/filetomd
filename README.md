@@ -53,6 +53,37 @@ fileconverter convert ./input/ --format pdf -r
 fileconverter convert ./input/ --format pdf --format docx -r
 ```
 
+### Merge mode
+
+Combine all converted files into a single Markdown document, ready to paste into an LLM context window.
+
+```bash
+# Merge multiple files into merged.md
+fileconverter convert doc1.pdf doc2.docx --merge -o ./output/
+
+# Merge a folder recursively with a custom filename
+fileconverter convert ./docs/ -r --merge --merge-filename context.md -o ./output/
+
+# Dry run to preview what would be merged
+fileconverter convert ./docs/ -r --merge --dry-run
+```
+
+The merged output uses `# filename` headers and `---` separators between documents:
+
+```markdown
+# file1.pdf
+
+<converted content>
+
+---
+
+# file2.docx
+
+<converted content>
+```
+
+Individual `.md` files are **not** written in merge mode — only the single merged file is produced. Failed conversions are skipped in the output but still reported as errors.
+
 ### Additional options
 
 ```bash

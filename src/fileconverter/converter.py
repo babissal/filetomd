@@ -138,3 +138,83 @@ class FileConverter:
         results.sort(key=lambda r: r.source_path.name.lower())
 
         return results
+
+    def convert_and_merge(
+        self,
+        paths: list[Path],
+        recursive: bool = False,
+        formats: list[str] | None = None,
+        dry_run: bool = False,
+        merge_filename: str = "merged.md",
+    ) -> list[ConversionResult]:
+        """Convert multiple files and merge into a single Markdown file.
+
+        Individual .md files are NOT written. Only the merged output is saved.
+
+        Args:
+            paths: List of file or directory paths to convert.
+            recursive: Whether to search directories recursively.
+            formats: Optional list of formats to filter by.
+            dry_run: If True, only return what would be merged.
+            merge_filename: Name of the merged output file.
+
+        Returns:
+            List of ConversionResults (one per source file).
+        """
+        # Discover all files
+        files = discover_files(paths, recursive=recursive, formats=formats)
+
+        if not files:
+            return []
+
+        # Determine merged output path
+        if self.output_dir is not None:
+            merged_path = self.output_dir / merge_filename
+        else:
+            merged_path = Path.cwd() / merge_filename
+
+        if dry_run:
+            results: list[ConversionResult] = []
+            for file_path in files:
+                results.append(ConversionResult(
+                    source_path=file_path,
+                    output_path=merged_path,
+                    success=True,
+                    markdown="[dry run]",
+                ))
+            return results
+
+        # Convert files in parallel (without writing individual files)
+        results = []
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            future_to_file = {
+                executor.submit(self.convert_file, f): f
+                for f in files
+            }
+
+            for future in as_completed(future_to_file):
+                result = future.result()
+                results.append(result)
+
+        # Sort results by filename for deterministic output
+        results.sort(key=lambda r: r.source_path.name.lower())
+
+        # Build merged markdown from successful conversions
+        sections: list[str] = []
+        for result in results:
+            if result.success:
+                sections.append(f"# {result.filename}\n\n{result.markdown}")
+
+        if sections:
+            merged_content = "\n\n---\n\n".join(sections) + "\n"
+
+            # Write merged file
+            merged_path.parent.mkdir(parents=True, exist_ok=True)
+            merged_path.write_text(merged_content, encoding="utf-8")
+
+            # Set output_path on successful results
+            for result in results:
+                if result.success:
+                    result.output_path = merged_path
+
+        return results
