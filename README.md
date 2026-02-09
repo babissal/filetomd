@@ -1,6 +1,6 @@
 # FileConverter
 
-CLI tool to convert PDF, HTML, DOCX, XLSX, MSG (Outlook email), CSV, PPTX (PowerPoint), and image files to Markdown for use as Claude/LLM input.
+CLI tool to convert PDF, HTML, DOCX, XLSX, MSG (Outlook email), CSV, PPTX (PowerPoint), image, and video files to Markdown for use as Claude/LLM input.
 
 ## Installation
 
@@ -22,6 +22,7 @@ fileconverter convert data.csv
 fileconverter convert presentation.pptx
 fileconverter convert photo.png
 fileconverter convert scan.jpg
+fileconverter convert meeting.mp4
 ```
 
 ### Multiple files
@@ -99,7 +100,9 @@ fileconverter convert ./documents/ -r -w 8
 
 ## Supported Formats
 
-- **PDF** - Converted using pymupdf4llm (excellent table and layout handling)
+- **PDF** - Converted using pymupdf4llm with table post-processing
+  - Degenerate tables (e.g., flowcharts misread as wide tables) are automatically detected and restructured into readable headings and bullet lists
+  - Normal tables are cleaned up: `<br>` tags replaced, generic headers inferred, redundant sub-header rows removed
 - **HTML/HTM** - Converted using markdownify + BeautifulSoup
 - **DOCX** - Converted using mammoth + markdownify
 - **XLSX** - Converted using openpyxl (native markdown table generation)
@@ -121,6 +124,11 @@ fileconverter convert ./documents/ -r -w 8
   - Includes image metadata (format, dimensions, color mode)
   - Use `--extract-images` to copy the original image alongside the markdown
   - Requires [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) installed on the system
+- **Video** (MP4, AVI, MKV, MOV, WEBM, WMV) - Frame extraction with OCR text recognition
+  - Extracts key frames at configurable intervals (default 5 seconds)
+  - Runs OCR on each frame and deduplicates text across consecutive frames
+  - Includes video metadata (duration, resolution, FPS)
+  - Requires [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) and OpenCV
 
 ## Output
 
