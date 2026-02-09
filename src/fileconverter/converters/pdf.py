@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from fileconverter.converters.base import BaseConverter, ConversionResult
+from fileconverter.converters.table_postprocessor import postprocess_tables
 
 
 class PDFConverter(BaseConverter):
@@ -32,6 +33,9 @@ class PDFConverter(BaseConverter):
         try:
             # pymupdf4llm.to_markdown handles tables and layout well
             markdown = pymupdf4llm.to_markdown(str(file_path))
+
+            # Post-process tables (fix degenerate tables, clean headers, etc.)
+            markdown = postprocess_tables(markdown)
 
             # Clean up the markdown output
             markdown = self._clean_markdown(markdown)

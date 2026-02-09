@@ -9,6 +9,7 @@ from fileconverter.converters.msg import MSGConverter
 from fileconverter.converters.csv import CSVConverter
 from fileconverter.converters.pptx import PPTXConverter
 from fileconverter.converters.image import ImageConverter
+from fileconverter.converters.video import VideoConverter
 
 # Registry mapping file extensions to converter classes
 CONVERTER_REGISTRY: dict[str, type[BaseConverter]] = {
@@ -28,12 +29,19 @@ CONVERTER_REGISTRY: dict[str, type[BaseConverter]] = {
     ".tiff": ImageConverter,
     ".tif": ImageConverter,
     ".webp": ImageConverter,
+    ".mp4": VideoConverter,
+    ".avi": VideoConverter,
+    ".mkv": VideoConverter,
+    ".mov": VideoConverter,
+    ".webm": VideoConverter,
+    ".wmv": VideoConverter,
 }
 
 # Supported formats for CLI help
 SUPPORTED_FORMATS = [
     "pdf", "html", "htm", "docx", "xlsx", "msg", "csv", "pptx",
     "png", "jpg", "jpeg", "gif", "bmp", "tiff", "tif", "webp",
+    "mp4", "avi", "mkv", "mov", "webm", "wmv",
 ]
 
 
@@ -58,6 +66,7 @@ __all__ = [
     "CSVConverter",
     "PPTXConverter",
     "ImageConverter",
+    "VideoConverter",
     "CONVERTER_REGISTRY",
     "SUPPORTED_FORMATS",
     "get_converter",

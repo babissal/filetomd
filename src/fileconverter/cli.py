@@ -14,8 +14,9 @@ from fileconverter.converters import SUPPORTED_FORMATS
 def main():
     """FileConverter - Convert documents to Markdown for LLM input.
 
-    Supports PDF, HTML, DOCX, XLSX, MSG, CSV, PPTX, and image files
-    (PNG, JPG, GIF, BMP, TIFF, WEBP).
+    Supports PDF, HTML, DOCX, XLSX, MSG, CSV, PPTX, image files
+    (PNG, JPG, GIF, BMP, TIFF, WEBP), and video files
+    (MP4, AVI, MKV, MOV, WEBM, WMV).
     """
     pass
 
