@@ -6,6 +6,8 @@ from fileconverter.converters.table_postprocessor import (
     ParsedTable,
     _collect_unique_items,
     _is_redundant_subheader,
+    _merge_nonadjacent_alpha_fragments,
+    _merge_short_fragments,
     _rebuild_table,
     _row_duplication_ratio,
     _split_row,
@@ -264,6 +266,65 @@ class TestCleanTable:
         result = clean_table(table)
         assert "Col2" not in result
         assert "Alice" in result
+
+
+# ---- Fragment merging tests ----
+
+
+class TestMergeNonadjacentAlphaFragments:
+    def test_basic_nonadjacent_merge(self):
+        """Short alpha fragments separated by a long item are merged."""
+        items = ["YE", "Consulting and analysis", "S"]
+        result = _merge_nonadjacent_alpha_fragments(items, frag_len=4)
+        assert result == ["YES", "Consulting and analysis"]
+
+    def test_no_merge_when_not_alpha(self):
+        """Non-alpha short fragments are not merged across gaps."""
+        items = ["12", "Long content here", "3"]
+        result = _merge_nonadjacent_alpha_fragments(items, frag_len=4)
+        assert result == ["12", "Long content here", "3"]
+
+    def test_no_merge_when_middle_is_short(self):
+        """If the middle item is also short, no nonadjacent merge."""
+        items = ["YE", "ok", "S"]
+        result = _merge_nonadjacent_alpha_fragments(items, frag_len=4)
+        assert result == ["YE", "ok", "S"]
+
+    def test_multiple_pairs(self):
+        """Multiple nonadjacent fragment pairs are all merged."""
+        items = ["YE", "Action A", "S", "NO", "Action B", "T"]
+        result = _merge_nonadjacent_alpha_fragments(items, frag_len=4)
+        assert result == ["YES", "Action A", "NOT", "Action B"]
+
+    def test_too_few_items(self):
+        """With fewer than 3 items, returns unchanged."""
+        assert _merge_nonadjacent_alpha_fragments(["YE", "S"], frag_len=4) == ["YE", "S"]
+        assert _merge_nonadjacent_alpha_fragments(["X"], frag_len=4) == ["X"]
+
+
+class TestMergeShortFragments:
+    def test_nonadjacent_then_adjacent(self):
+        """Nonadjacent merge runs first, then adjacent merge handles the rest.
+
+        After nonadjacent merge: ["YES", "Consulting and analysis"].
+        "YES" (3 chars) is still short, so adjacent merge prepends it
+        to the next item.
+        """
+        items = ["YE", "Consulting and analysis", "S"]
+        result = _merge_short_fragments(items)
+        assert result == ["YES Consulting and analysis"]
+
+    def test_adjacent_merge_still_works(self):
+        """Adjacent short fragments are still merged."""
+        items = ["YE", "S"]
+        result = _merge_short_fragments(items)
+        assert result == ["YES"]
+
+    def test_long_items_unchanged(self):
+        """Items longer than fragment threshold pass through unchanged."""
+        items = ["Hello world", "Another sentence"]
+        result = _merge_short_fragments(items)
+        assert result == items
 
 
 # ---- Integration tests ----

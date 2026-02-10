@@ -262,9 +262,9 @@ def restructure_degenerate(table: ParsedTable) -> str:
 def _merge_short_fragments(items: list[str]) -> list[str]:
     """Merge short text fragments that are likely split across PDF cell boundaries.
 
-    For example, ["YE", "Consulting and analysis", "S"] might have "YE" and "S"
-    as fragments of "YES" split across cells.  We merge consecutive short items
-    (<=3 chars) into the nearest longer neighbour.
+    Handles both adjacent fragments (e.g., ["YE", "S"] -> ["YES"]) and
+    non-adjacent alpha fragments separated by longer content
+    (e.g., ["YE", "Consulting and analysis", "S"] -> ["YES", "Consulting and analysis"]).
     """
     if len(items) <= 1:
         return items
@@ -272,6 +272,12 @@ def _merge_short_fragments(items: list[str]) -> list[str]:
     # Threshold: items with this many chars or fewer are considered fragments
     frag_len = 4
 
+    # First pass: merge non-adjacent short alpha fragments separated by
+    # longer items.  This fixes cases where pymupdf4llm splits a flowchart
+    # label (e.g., "YES") across non-contiguous cells.
+    items = _merge_nonadjacent_alpha_fragments(items, frag_len)
+
+    # Second pass: merge remaining adjacent short fragments
     merged: list[str] = []
     i = 0
     while i < len(items):
@@ -298,6 +304,38 @@ def _merge_short_fragments(items: list[str]) -> list[str]:
         i += 1
 
     return merged
+
+
+def _merge_nonadjacent_alpha_fragments(items: list[str], frag_len: int) -> list[str]:
+    """Merge non-adjacent short alphabetic fragments likely split from one word.
+
+    Detects patterns like ["YE", "long content", "S"] where two short
+    alpha-only fragments are separated by exactly one longer item, and
+    merges them into a single word: ["YES", "long content"].
+    """
+    if len(items) < 3:
+        return items
+
+    result = list(items)
+    i = 0
+    while i < len(result) - 2:
+        a = result[i]
+        if len(a) > frag_len or not a.isalpha():
+            i += 1
+            continue
+
+        mid = result[i + 1]
+        b = result[i + 2]
+        if len(b) <= frag_len and b.isalpha() and len(mid) > frag_len:
+            result[i : i + 3] = [a + b, mid]
+            # Skip past the merged word + middle item so we don't
+            # accidentally re-merge the new word with later fragments
+            i += 2
+            continue
+
+        i += 1
+
+    return result
 
 
 def _collect_unique_items(cells: list[str]) -> list[str]:
