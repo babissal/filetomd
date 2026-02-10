@@ -1,5 +1,6 @@
 """PDF to Markdown converter using pymupdf4llm."""
 
+import time
 from pathlib import Path
 
 from fileconverter.converters.base import BaseConverter, ConversionResult
@@ -31,8 +32,20 @@ class PDFConverter(BaseConverter):
             )
 
         try:
-            # pymupdf4llm.to_markdown handles tables and layout well
-            markdown = pymupdf4llm.to_markdown(str(file_path))
+            # pymupdf4llm.to_markdown handles tables and layout well.
+            # Retry once on AttributeError — pymupdf4llm's find_tables has a
+            # threading race condition that intermittently produces:
+            #   "'NoneType' object has no attribute 'tables'"
+            markdown = None
+            for attempt in range(2):
+                try:
+                    markdown = pymupdf4llm.to_markdown(str(file_path))
+                    break
+                except AttributeError:
+                    if attempt == 0:
+                        time.sleep(0.5)
+                    else:
+                        raise
 
             # Post-process tables (fix degenerate tables, clean headers, etc.)
             markdown = postprocess_tables(markdown)
