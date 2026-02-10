@@ -1,6 +1,6 @@
 # FileConverter
 
-CLI tool to convert PDF, HTML, DOCX, XLSX, MSG (Outlook email), CSV, PPTX (PowerPoint), image, and video files to Markdown for use as Claude/LLM input.
+CLI tool to convert PDF, HTML, DOCX, XLSX, MSG (Outlook email), CSV, PPTX (PowerPoint), image, video files, and web pages (URLs) to Markdown for use as Claude/LLM input.
 
 ## Installation
 
@@ -23,6 +23,7 @@ fileconverter convert presentation.pptx
 fileconverter convert photo.png
 fileconverter convert scan.jpg
 fileconverter convert meeting.mp4
+fileconverter convert https://example.com/article
 ```
 
 ### Multiple files
@@ -85,6 +86,21 @@ The merged output uses `# filename` headers and `---` separators between documen
 
 Individual `.md` files are **not** written in merge mode — only the single merged file is produced. Failed conversions are skipped in the output but still reported as errors.
 
+### URL / web page conversion
+
+```bash
+# Convert a web page to Markdown
+fileconverter convert https://example.com/article
+
+# Save to a specific directory
+fileconverter convert https://blog.example.com/post-123 -o ./output/
+
+# Mix files and URLs, merged into a single document
+fileconverter convert document.pdf https://example.com/page --merge -o ./output/
+```
+
+Web pages are fetched, boilerplate (navigation, sidebars, footers) is stripped using Mozilla's Readability algorithm, and the main content is converted to clean Markdown.
+
 ### Additional options
 
 ```bash
@@ -129,6 +145,11 @@ fileconverter convert ./documents/ -r -w 8
   - Runs OCR on each frame and deduplicates text across consecutive frames
   - Includes video metadata (duration, resolution, FPS)
   - Requires [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) and OpenCV
+- **URL** (HTTP/HTTPS) - Web page fetching with content extraction
+  - Fetches the page and extracts main content using Mozilla's Readability algorithm
+  - Strips boilerplate (navigation, sidebars, footers, ads)
+  - Converts extracted HTML to clean Markdown
+  - Can be mixed with local files in batch and merge modes
 
 ## Output
 

@@ -10,6 +10,7 @@ from fileconverter.converters.csv import CSVConverter
 from fileconverter.converters.pptx import PPTXConverter
 from fileconverter.converters.image import ImageConverter
 from fileconverter.converters.video import VideoConverter
+from fileconverter.converters.url import URLConverter
 
 # Registry mapping file extensions to converter classes
 CONVERTER_REGISTRY: dict[str, type[BaseConverter]] = {
@@ -67,6 +68,7 @@ __all__ = [
     "PPTXConverter",
     "ImageConverter",
     "VideoConverter",
+    "URLConverter",
     "CONVERTER_REGISTRY",
     "SUPPORTED_FORMATS",
     "get_converter",

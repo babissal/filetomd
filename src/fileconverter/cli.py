@@ -7,6 +7,7 @@ import click
 from fileconverter import __version__
 from fileconverter.converter import FileConverter
 from fileconverter.converters import SUPPORTED_FORMATS
+from fileconverter.utils.url_utils import is_url
 
 
 @click.group()
@@ -15,14 +16,14 @@ def main():
     """FileConverter - Convert documents to Markdown for LLM input.
 
     Supports PDF, HTML, DOCX, XLSX, MSG, CSV, PPTX, image files
-    (PNG, JPG, GIF, BMP, TIFF, WEBP), and video files
-    (MP4, AVI, MKV, MOV, WEBM, WMV).
+    (PNG, JPG, GIF, BMP, TIFF, WEBP), video files
+    (MP4, AVI, MKV, MOV, WEBM, WMV), and URLs (HTTP/HTTPS).
     """
     pass
 
 
 @main.command()
-@click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True))
+@click.argument("paths", nargs=-1, required=True)
 @click.option(
     "-o", "--output",
     type=click.Path(file_okay=False, path_type=Path),
@@ -78,9 +79,9 @@ def convert(
     merge: bool,
     merge_filename: str,
 ):
-    """Convert files to Markdown.
+    """Convert files and URLs to Markdown.
 
-    PATHS can be files or directories. Multiple paths can be specified.
+    PATHS can be files, directories, or URLs. Multiple paths can be specified.
 
     \b
     Examples:
@@ -91,9 +92,22 @@ def convert(
         fileconverter convert ./documents/ -r --dry-run
         fileconverter convert doc1.pdf doc2.docx --merge -o ./output/
         fileconverter convert ./docs/ -r --merge --merge-filename context.md
+        fileconverter convert https://example.com/article
+        fileconverter convert doc.pdf https://example.com/page --merge -o ./output/
     """
-    # Convert path strings to Path objects
-    path_list = [Path(p) for p in paths]
+    # Separate URLs from file paths
+    urls = [p for p in paths if is_url(p)]
+    file_path_strings = [p for p in paths if not is_url(p)]
+
+    # Validate file paths exist
+    path_list: list[Path] = []
+    for p in file_path_strings:
+        path = Path(p)
+        if not path.exists():
+            raise click.BadParameter(
+                f"Path '{p}' does not exist.", param_hint="'PATHS'"
+            )
+        path_list.append(path)
 
     # Create converter
     converter = FileConverter(
@@ -113,14 +127,24 @@ def convert(
             formats=format_list,
             dry_run=dry_run,
             merge_filename=merge_filename,
+            urls=urls,
         )
     else:
-        results = converter.convert_batch(
+        # Convert files
+        file_results = converter.convert_batch(
             path_list,
             recursive=recursive,
             formats=format_list,
             dry_run=dry_run,
-        )
+        ) if path_list else []
+
+        # Convert URLs
+        url_results = converter.convert_urls(
+            urls,
+            dry_run=dry_run,
+        ) if urls else []
+
+        results = file_results + url_results
 
     if not results:
         click.echo("No files found to convert.")

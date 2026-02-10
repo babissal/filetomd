@@ -22,18 +22,32 @@ class HTMLConverter(BaseConverter):
             ConversionResult with the conversion outcome.
         """
         try:
+            html_content = file_path.read_text(encoding="utf-8", errors="replace")
+        except Exception as e:
+            return self._create_error_result(file_path, str(e))
+
+        return self._html_to_markdown(html_content, file_path)
+
+    def _html_to_markdown(self, html_content: str, source_path: Path) -> ConversionResult:
+        """Convert an HTML string to Markdown.
+
+        Args:
+            html_content: Raw HTML string.
+            source_path: Source identifier for the result.
+
+        Returns:
+            ConversionResult with the conversion outcome.
+        """
+        try:
             from bs4 import BeautifulSoup
             from markdownify import markdownify as md
         except ImportError as e:
             return self._create_error_result(
-                file_path,
+                source_path,
                 f"Required package not installed: {e}. Run: pip install markdownify beautifulsoup4",
             )
 
         try:
-            # Read HTML content
-            html_content = file_path.read_text(encoding="utf-8", errors="replace")
-
             # Parse with BeautifulSoup to clean up
             soup = BeautifulSoup(html_content, "html.parser")
 
@@ -55,10 +69,10 @@ class HTMLConverter(BaseConverter):
             # Clean up the output
             markdown = self._clean_markdown(markdown)
 
-            return self._create_success_result(file_path, markdown)
+            return self._create_success_result(source_path, markdown)
 
         except Exception as e:
-            return self._create_error_result(file_path, str(e))
+            return self._create_error_result(source_path, str(e))
 
     def _clean_markdown(self, markdown: str) -> str:
         """Clean up the markdown output."""

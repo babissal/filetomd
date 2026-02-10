@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fileconverter"
 version = "0.1.0"
-description = "CLI tool to convert PDF, HTML, DOCX, XLSX, MSG, CSV, PPTX, image, and video files to Markdown"
+description = "CLI tool to convert PDF, HTML, DOCX, XLSX, MSG, CSV, PPTX, image, video files, and web pages to Markdown"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
     {name = "Babis Saltsidis"}
 ]
-keywords = ["markdown", "converter", "pdf", "docx", "xlsx", "html", "msg", "email", "outlook", "csv", "pptx", "powerpoint", "image", "video", "ocr", "llm"]
+keywords = ["markdown", "converter", "pdf", "docx", "xlsx", "html", "msg", "email", "outlook", "csv", "pptx", "powerpoint", "image", "video", "ocr", "llm", "url", "web", "scraper"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
@@ -38,6 +38,8 @@ dependencies = [
     "Pillow>=10.0.0",
     "pytesseract>=0.3.10",
     "opencv-python>=4.8.0",
+    "requests>=2.31.0",
+    "readability-lxml>=0.8.1",
 ]
 
 [project.optional-dependencies]
