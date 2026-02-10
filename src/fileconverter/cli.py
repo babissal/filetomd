@@ -68,6 +68,12 @@ def main():
     default="merged.md",
     help="Filename for merged output. Default: merged.md.",
 )
+@click.option(
+    "--ocr-lang",
+    type=str,
+    default=None,
+    help="Tesseract OCR language (e.g., eng, ell, jpn, eng+fra).",
+)
 def convert(
     paths: tuple[str, ...],
     output: Path | None,
@@ -78,6 +84,7 @@ def convert(
     workers: int,
     merge: bool,
     merge_filename: str,
+    ocr_lang: str | None,
 ):
     """Convert files and URLs to Markdown.
 
@@ -114,6 +121,7 @@ def convert(
         output_dir=output,
         extract_images=extract_images,
         max_workers=workers,
+        ocr_lang=ocr_lang,
     )
 
     # Convert formats tuple to list or None

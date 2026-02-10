@@ -150,7 +150,7 @@ class TestDeduplication:
         call_count = [0]
         texts = ["Slide 1", "Slide 2"]
 
-        def varying_ocr(img):
+        def varying_ocr(img, **kwargs):
             idx = min(call_count[0], len(texts) - 1)
             call_count[0] += 1
             return texts[idx]
@@ -293,7 +293,7 @@ class TestCustomInterval:
         mock_cap = _make_mock_capture(fps=30.0, num_frames=900)
         call_count = [0]
 
-        def counting_ocr(img):
+        def counting_ocr(img, **kwargs):
             call_count[0] += 1
             return f"Text {call_count[0]}"
 
@@ -319,6 +319,38 @@ class TestResultStructure:
             result = converter.convert(video_file)
 
         assert result.source_path == video_file
+
+
+class TestOcrLang:
+    def test_ocr_lang_passed_to_pytesseract(self, tmp_path):
+        converter = VideoConverter(ocr_lang="ell")
+        video_file = tmp_path / "greek.mp4"
+        video_file.touch()
+
+        mock_cap = _make_mock_capture(fps=30.0, num_frames=150)
+
+        with patch("cv2.VideoCapture", return_value=mock_cap), \
+             patch("cv2.cvtColor", side_effect=lambda f, c: f), \
+             patch("pytesseract.image_to_string", return_value="Greek text") as mock_ocr:
+            result = converter.convert(video_file)
+
+        assert result.success is True
+        assert mock_ocr.call_args[1]["lang"] == "ell"
+
+    def test_ocr_lang_default_none(self, tmp_path):
+        converter = VideoConverter()
+        video_file = tmp_path / "test.mp4"
+        video_file.touch()
+
+        mock_cap = _make_mock_capture(fps=30.0, num_frames=150)
+
+        with patch("cv2.VideoCapture", return_value=mock_cap), \
+             patch("cv2.cvtColor", side_effect=lambda f, c: f), \
+             patch("pytesseract.image_to_string", return_value="English") as mock_ocr:
+            result = converter.convert(video_file)
+
+        assert result.success is True
+        assert mock_ocr.call_args[1]["lang"] is None
 
 
 class TestRegistration:

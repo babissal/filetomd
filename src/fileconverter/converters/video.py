@@ -31,9 +31,10 @@ class VideoConverter(BaseConverter):
     SIMILARITY_THRESHOLD = 0.95
 
     def __init__(
-        self, extract_images: bool = False, frame_interval: float | None = None
+        self, extract_images: bool = False, frame_interval: float | None = None,
+        ocr_lang: str | None = None,
     ):
-        super().__init__(extract_images=extract_images)
+        super().__init__(extract_images=extract_images, ocr_lang=ocr_lang)
         self.frame_interval = frame_interval or self.DEFAULT_FRAME_INTERVAL_SEC
 
     @classmethod
@@ -120,7 +121,7 @@ class VideoConverter(BaseConverter):
 
                     # Run OCR
                     try:
-                        ocr_text = pytesseract.image_to_string(pil_image).strip()
+                        ocr_text = pytesseract.image_to_string(pil_image, lang=self.ocr_lang).strip()
                     except pytesseract.TesseractNotFoundError:
                         pil_image.close()
                         return self._create_error_result(

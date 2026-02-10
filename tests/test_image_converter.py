@@ -180,6 +180,34 @@ class TestResultStructure:
         assert result.source_path == bad
 
 
+class TestOcrLang:
+    def test_ocr_lang_passed_to_pytesseract(self, sample_image):
+        converter = ImageConverter(ocr_lang="ell")
+        with patch("pytesseract.image_to_string", return_value="Greek text") as mock_ocr:
+            result = converter.convert(sample_image)
+
+        assert result.success is True
+        mock_ocr.assert_called_once()
+        assert mock_ocr.call_args[1]["lang"] == "ell"
+
+    def test_ocr_lang_default_none(self, sample_image):
+        converter = ImageConverter()
+        with patch("pytesseract.image_to_string", return_value="English text") as mock_ocr:
+            result = converter.convert(sample_image)
+
+        assert result.success is True
+        mock_ocr.assert_called_once()
+        assert mock_ocr.call_args[1]["lang"] is None
+
+    def test_ocr_lang_multiple_languages(self, sample_image):
+        converter = ImageConverter(ocr_lang="eng+fra")
+        with patch("pytesseract.image_to_string", return_value="Bilingual") as mock_ocr:
+            result = converter.convert(sample_image)
+
+        assert result.success is True
+        assert mock_ocr.call_args[1]["lang"] == "eng+fra"
+
+
 class TestRegistration:
     def test_image_extensions_in_registry(self):
         from fileconverter.converters import CONVERTER_REGISTRY

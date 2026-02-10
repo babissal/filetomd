@@ -53,7 +53,7 @@ class ImageConverter(BaseConverter):
 
             # Run OCR
             try:
-                ocr_text = pytesseract.image_to_string(img).strip()
+                ocr_text = pytesseract.image_to_string(img, lang=self.ocr_lang).strip()
             except pytesseract.TesseractNotFoundError:
                 return self._create_error_result(
                     file_path,

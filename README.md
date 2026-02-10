@@ -101,6 +101,24 @@ fileconverter convert document.pdf https://example.com/page --merge -o ./output/
 
 Web pages are fetched, boilerplate (navigation, sidebars, footers) is stripped using Mozilla's Readability algorithm, and the main content is converted to clean Markdown.
 
+### OCR language selection
+
+```bash
+# Use Greek language pack for OCR
+fileconverter convert scan.jpg --ocr-lang ell
+
+# Use Japanese
+fileconverter convert document.png --ocr-lang jpn
+
+# Use multiple languages (English + French)
+fileconverter convert scan.pdf --ocr-lang eng+fra
+
+# Default (no flag) uses English
+fileconverter convert scan.jpg
+```
+
+Requires the corresponding [Tesseract language data](https://github.com/tesseract-ocr/tessdata) to be installed. The `--ocr-lang` value is passed directly to Tesseract's `-l` flag.
+
 ### Additional options
 
 ```bash

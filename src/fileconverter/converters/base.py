@@ -26,13 +26,15 @@ class ConversionResult:
 class BaseConverter(ABC):
     """Abstract base class for file converters."""
 
-    def __init__(self, extract_images: bool = False):
+    def __init__(self, extract_images: bool = False, ocr_lang: str | None = None):
         """Initialize converter.
 
         Args:
             extract_images: Whether to extract images from the document.
+            ocr_lang: Tesseract OCR language code (e.g., 'eng', 'ell', 'eng+fra').
         """
         self.extract_images = extract_images
+        self.ocr_lang = ocr_lang
 
     @abstractmethod
     def convert(self, file_path: Path) -> ConversionResult:
