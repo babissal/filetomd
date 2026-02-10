@@ -29,4 +29,5 @@ venv/
 
 # Project-specific
 .claude/
+CLAUDE.md
 fileconverter.bat
