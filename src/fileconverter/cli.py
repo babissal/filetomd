@@ -168,7 +168,8 @@ def convert(
                 if not merge:
                     click.echo(f"    -> {result.output_path}")
             else:
-                click.echo(f"[OK] {result.source_path.name} -> {result.output_path}")
+                pct = f" {result.quality_score:.0%}" if result.quality_score is not None else ""
+                click.echo(f"[OK{pct}] {result.source_path.name} -> {result.output_path}")
                 if result.images_extracted:
                     click.echo(f"     Extracted {len(result.images_extracted)} images")
         else:

@@ -7,6 +7,7 @@ from fileconverter.converters import get_converter
 from fileconverter.converters.base import ConversionResult
 from fileconverter.converters.url import URLConverter
 from fileconverter.utils.file_utils import discover_files, get_output_path
+from fileconverter.utils.quality_scorer import score_quality
 from fileconverter.utils.url_utils import url_to_filename, url_to_source_path
 
 
@@ -52,6 +53,9 @@ class FileConverter:
         converter = converter_class(extract_images=self.extract_images)
         result = converter.convert(file_path)
 
+        if result.success:
+            result.quality_score = score_quality(result.markdown)
+
         return result
 
     def convert_and_save(
@@ -93,7 +97,12 @@ class FileConverter:
         """
         source_path = url_to_source_path(url)
         converter = URLConverter(extract_images=self.extract_images)
-        return converter.convert_url(url, source_path)
+        result = converter.convert_url(url, source_path)
+
+        if result.success:
+            result.quality_score = score_quality(result.markdown)
+
+        return result
 
     def convert_url_and_save(self, url: str) -> ConversionResult:
         """Convert a URL and save the output.

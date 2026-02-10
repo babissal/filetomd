@@ -1,6 +1,6 @@
 # FileConverter
 
-CLI tool to convert PDF, HTML, DOCX, XLSX, MSG (Outlook email), CSV, PPTX (PowerPoint), image, video files, and web pages (URLs) to Markdown for use as Claude/LLM input.
+CLI tool to convert PDF, HTML, DOCX, XLSX, MSG (Outlook email), CSV, PPTX (PowerPoint), image, video files, and web pages (URLs) to Markdown for use as LLM input.
 
 ## Installation
 
@@ -150,6 +150,25 @@ fileconverter convert ./documents/ -r -w 8
   - Strips boilerplate (navigation, sidebars, footers, ads)
   - Converts extracted HTML to clean Markdown
   - Can be mixed with local files in batch and merge modes
+
+## Quality Score
+
+Each converted file is automatically scored for extraction quality (0–100%). The score appears in the output next to each file:
+
+```
+[OK 92%] report.pdf -> report.md
+[OK 78%] scan.jpg -> scan.md
+[OK 45%] garbled.pdf -> garbled.md
+```
+
+The score is a weighted average of format-agnostic heuristics:
+- **Word density** (25%) — ratio of dictionary-like words to total tokens
+- **Garbled text detection** (25%) — absence of garbled character patterns
+- **Content length** (20%) — penalises very short output (likely failed extraction)
+- **Whitespace ratio** (15%) — excessive blank lines suggest extraction issues
+- **Markdown structure** (15%) — presence of headings, lists, tables, paragraphs
+
+Score ranges: 90–100% excellent, 70–89% good, 50–69% fair, <50% poor. Files with low scores likely need manual review. The score is not shown during `--dry-run`.
 
 ## Output
 

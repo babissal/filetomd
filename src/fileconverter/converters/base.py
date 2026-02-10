@@ -15,6 +15,7 @@ class ConversionResult:
     markdown: str = ""
     error: str | None = None
     images_extracted: list[Path] = field(default_factory=list)
+    quality_score: float | None = None
 
     @property
     def filename(self) -> str:
