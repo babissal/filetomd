@@ -20,6 +20,7 @@ class FileConverter:
         extract_images: bool = False,
         max_workers: int = 4,
         ocr_lang: str | None = None,
+        ocr_enhance: bool = False,
     ):
         """Initialize the converter.
 
@@ -28,11 +29,13 @@ class FileConverter:
             extract_images: Whether to extract images from documents.
             max_workers: Maximum number of parallel conversion threads.
             ocr_lang: Tesseract OCR language code (e.g., 'eng', 'ell', 'eng+fra').
+            ocr_enhance: Whether to preprocess images before OCR for better accuracy.
         """
         self.output_dir = output_dir
         self.extract_images = extract_images
         self.max_workers = max_workers
         self.ocr_lang = ocr_lang
+        self.ocr_enhance = ocr_enhance
 
     def convert_file(self, file_path: Path) -> ConversionResult:
         """Convert a single file to Markdown.
@@ -53,7 +56,7 @@ class FileConverter:
                 error=f"Unsupported file format: {extension}",
             )
 
-        converter = converter_class(extract_images=self.extract_images, ocr_lang=self.ocr_lang)
+        converter = converter_class(extract_images=self.extract_images, ocr_lang=self.ocr_lang, ocr_enhance=self.ocr_enhance)
         result = converter.convert(file_path)
 
         if result.success:
@@ -99,7 +102,7 @@ class FileConverter:
             ConversionResult with the conversion outcome.
         """
         source_path = url_to_source_path(url)
-        converter = URLConverter(extract_images=self.extract_images, ocr_lang=self.ocr_lang)
+        converter = URLConverter(extract_images=self.extract_images, ocr_lang=self.ocr_lang, ocr_enhance=self.ocr_enhance)
         result = converter.convert_url(url, source_path)
 
         if result.success:

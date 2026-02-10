@@ -101,6 +101,23 @@ fileconverter convert document.pdf https://example.com/page --merge -o ./output/
 
 Web pages are fetched, boilerplate (navigation, sidebars, footers) is stripped using Mozilla's Readability algorithm, and the main content is converted to clean Markdown.
 
+### OCR enhancement
+
+Improve OCR accuracy on noisy, skewed, or low-contrast scans with image preprocessing:
+
+```bash
+# Enhance image before OCR
+fileconverter convert scan.jpg --ocr-enhance
+
+# Combine with language selection
+fileconverter convert scan.jpg --ocr-enhance --ocr-lang ell
+
+# Works with video too
+fileconverter convert lecture.mp4 --ocr-enhance
+```
+
+The preprocessing pipeline applies grayscale conversion, upscaling (for small images), denoising, contrast enhancement (CLAHE), adaptive binarization, deskew correction, and sharpening before passing the image to Tesseract.
+
 ### OCR language selection
 
 ```bash

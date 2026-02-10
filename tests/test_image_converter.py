@@ -208,6 +208,39 @@ class TestOcrLang:
         assert mock_ocr.call_args[1]["lang"] == "eng+fra"
 
 
+class TestOcrEnhance:
+    def test_ocr_enhance_calls_preprocessor(self, sample_image):
+        converter = ImageConverter(ocr_enhance=True)
+        with patch("pytesseract.image_to_string", return_value="Enhanced text"), \
+             patch("fileconverter.converters.ocr_preprocessor.preprocess_for_ocr", return_value=Image.new("L", (100, 50))) as mock_preprocess:
+            result = converter.convert(sample_image)
+
+        assert result.success is True
+        mock_preprocess.assert_called_once()
+
+    def test_ocr_enhance_false_skips_preprocessor(self, sample_image):
+        converter = ImageConverter(ocr_enhance=False)
+        with patch("pytesseract.image_to_string", return_value="Normal text"), \
+             patch("fileconverter.converters.ocr_preprocessor.preprocess_for_ocr") as mock_preprocess:
+            result = converter.convert(sample_image)
+
+        assert result.success is True
+        mock_preprocess.assert_not_called()
+
+    def test_ocr_enhance_default_false(self):
+        converter = ImageConverter()
+        assert converter.ocr_enhance is False
+
+    def test_ocr_enhance_with_ocr_lang(self, sample_image):
+        converter = ImageConverter(ocr_enhance=True, ocr_lang="ell")
+        with patch("pytesseract.image_to_string", return_value="Greek text") as mock_ocr, \
+             patch("fileconverter.converters.ocr_preprocessor.preprocess_for_ocr", return_value=Image.new("L", (100, 50))):
+            result = converter.convert(sample_image)
+
+        assert result.success is True
+        assert mock_ocr.call_args[1]["lang"] == "ell"
+
+
 class TestRegistration:
     def test_image_extensions_in_registry(self):
         from fileconverter.converters import CONVERTER_REGISTRY

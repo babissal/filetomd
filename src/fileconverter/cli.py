@@ -74,6 +74,11 @@ def main():
     default=None,
     help="Tesseract OCR language (e.g., eng, ell, jpn, eng+fra).",
 )
+@click.option(
+    "--ocr-enhance",
+    is_flag=True,
+    help="Preprocess images before OCR to improve text extraction accuracy.",
+)
 def convert(
     paths: tuple[str, ...],
     output: Path | None,
@@ -85,6 +90,7 @@ def convert(
     merge: bool,
     merge_filename: str,
     ocr_lang: str | None,
+    ocr_enhance: bool,
 ):
     """Convert files and URLs to Markdown.
 
@@ -122,6 +128,7 @@ def convert(
         extract_images=extract_images,
         max_workers=workers,
         ocr_lang=ocr_lang,
+        ocr_enhance=ocr_enhance,
     )
 
     # Convert formats tuple to list or None

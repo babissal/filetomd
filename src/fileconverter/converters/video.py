@@ -32,9 +32,9 @@ class VideoConverter(BaseConverter):
 
     def __init__(
         self, extract_images: bool = False, frame_interval: float | None = None,
-        ocr_lang: str | None = None,
+        ocr_lang: str | None = None, ocr_enhance: bool = False,
     ):
-        super().__init__(extract_images=extract_images, ocr_lang=ocr_lang)
+        super().__init__(extract_images=extract_images, ocr_lang=ocr_lang, ocr_enhance=ocr_enhance)
         self.frame_interval = frame_interval or self.DEFAULT_FRAME_INTERVAL_SEC
 
     @classmethod
@@ -119,9 +119,15 @@ class VideoConverter(BaseConverter):
                     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     pil_image = Image.fromarray(rgb_frame)
 
+                    # Preprocess for OCR if requested
+                    ocr_img = pil_image
+                    if self.ocr_enhance:
+                        from fileconverter.converters.ocr_preprocessor import preprocess_for_ocr
+                        ocr_img = preprocess_for_ocr(pil_image)
+
                     # Run OCR
                     try:
-                        ocr_text = pytesseract.image_to_string(pil_image, lang=self.ocr_lang).strip()
+                        ocr_text = pytesseract.image_to_string(ocr_img, lang=self.ocr_lang).strip()
                     except pytesseract.TesseractNotFoundError:
                         pil_image.close()
                         return self._create_error_result(

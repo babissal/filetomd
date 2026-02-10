@@ -353,6 +353,62 @@ class TestOcrLang:
         assert mock_ocr.call_args[1]["lang"] is None
 
 
+class TestOcrEnhance:
+    def test_ocr_enhance_calls_preprocessor(self, tmp_path):
+        from PIL import Image
+        converter = VideoConverter(ocr_enhance=True)
+        video_file = tmp_path / "scan.mp4"
+        video_file.touch()
+
+        mock_cap = _make_mock_capture(fps=30.0, num_frames=150)
+
+        with patch("cv2.VideoCapture", return_value=mock_cap), \
+             patch("cv2.cvtColor", side_effect=lambda f, c: f), \
+             patch("pytesseract.image_to_string", return_value="Enhanced text"), \
+             patch("fileconverter.converters.ocr_preprocessor.preprocess_for_ocr", return_value=Image.new("L", (640, 480))) as mock_preprocess:
+            result = converter.convert(video_file)
+
+        assert result.success is True
+        assert mock_preprocess.call_count >= 1
+
+    def test_ocr_enhance_false_skips_preprocessor(self, tmp_path):
+        converter = VideoConverter(ocr_enhance=False)
+        video_file = tmp_path / "test.mp4"
+        video_file.touch()
+
+        mock_cap = _make_mock_capture(fps=30.0, num_frames=150)
+
+        with patch("cv2.VideoCapture", return_value=mock_cap), \
+             patch("cv2.cvtColor", side_effect=lambda f, c: f), \
+             patch("pytesseract.image_to_string", return_value="Normal text"), \
+             patch("fileconverter.converters.ocr_preprocessor.preprocess_for_ocr") as mock_preprocess:
+            result = converter.convert(video_file)
+
+        assert result.success is True
+        mock_preprocess.assert_not_called()
+
+    def test_ocr_enhance_default_false(self):
+        converter = VideoConverter()
+        assert converter.ocr_enhance is False
+
+    def test_ocr_enhance_with_ocr_lang(self, tmp_path):
+        from PIL import Image
+        converter = VideoConverter(ocr_enhance=True, ocr_lang="ell")
+        video_file = tmp_path / "greek.mp4"
+        video_file.touch()
+
+        mock_cap = _make_mock_capture(fps=30.0, num_frames=150)
+
+        with patch("cv2.VideoCapture", return_value=mock_cap), \
+             patch("cv2.cvtColor", side_effect=lambda f, c: f), \
+             patch("pytesseract.image_to_string", return_value="Greek text") as mock_ocr, \
+             patch("fileconverter.converters.ocr_preprocessor.preprocess_for_ocr", return_value=Image.new("L", (640, 480))):
+            result = converter.convert(video_file)
+
+        assert result.success is True
+        assert mock_ocr.call_args[1]["lang"] == "ell"
+
+
 class TestRegistration:
     def test_video_extensions_in_registry(self):
         from fileconverter.converters import CONVERTER_REGISTRY

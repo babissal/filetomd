@@ -51,9 +51,15 @@ class ImageConverter(BaseConverter):
             image_format = img.format or file_path.suffix.lstrip(".").upper()
             color_mode = img.mode
 
+            # Preprocess for OCR if requested
+            ocr_img = img
+            if self.ocr_enhance:
+                from fileconverter.converters.ocr_preprocessor import preprocess_for_ocr
+                ocr_img = preprocess_for_ocr(img)
+
             # Run OCR
             try:
-                ocr_text = pytesseract.image_to_string(img, lang=self.ocr_lang).strip()
+                ocr_text = pytesseract.image_to_string(ocr_img, lang=self.ocr_lang).strip()
             except pytesseract.TesseractNotFoundError:
                 return self._create_error_result(
                     file_path,
